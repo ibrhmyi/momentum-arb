@@ -55,8 +55,9 @@ export async function GET(request: Request) {
   const limit = Math.min(Number(searchParams.get("limit") ?? 50), 200);
   const confidence = searchParams.get("confidence"); // low | medium | high | null=all
 
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_ANON_KEY;
+  // Support both standalone naming and the parent-project's momentum-specific naming
+  const url = process.env.SUPABASE_URL ?? process.env.MOMENTUM_SUPABASE_URL;
+  const key = process.env.SUPABASE_ANON_KEY ?? process.env.MOMENTUM_SUPABASE_ANON_KEY;
 
   if (!url || !key) return Response.json(emptyResponse(false));
 
