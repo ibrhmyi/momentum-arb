@@ -129,6 +129,15 @@ export class MomentumDetector {
     this.onSignal(signal);
   }
 
+  getVelocity(conditionId: string): number {
+    const history = this.priceHistory.get(conditionId);
+    if (!history || history.length < 2) return 0;
+    const windowStart = Date.now() - this.config.windowMs;
+    const relevant = history.filter((p) => p.timestamp >= windowStart);
+    if (relevant.length < 2) return 0;
+    return linearRegressionSlope(relevant);
+  }
+
   resetMarket(conditionId: string): void {
     this.priceHistory.delete(conditionId);
     this.lastSignalTime.delete(conditionId);

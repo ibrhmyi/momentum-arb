@@ -1,11 +1,17 @@
-import { Dashboard } from "@/components/dashboard";
+"use client";
 
-export const dynamic = "force-dynamic";
+import { useState } from "react";
+import { Dashboard } from "@/components/dashboard";
+import { LiveMarkets } from "@/components/live-markets";
+
+type Tab = "live" | "signals";
 
 export default function Page() {
+  const [tab, setTab] = useState<Tab>("live");
+
   return (
     <main className="min-h-screen bg-zinc-950 px-4 py-8 md:px-10">
-      <div className="mx-auto max-w-5xl space-y-8">
+      <div className="mx-auto max-w-5xl space-y-6">
 
         {/* Header */}
         <div className="flex items-start justify-between">
@@ -24,7 +30,7 @@ export default function Page() {
             </p>
           </div>
 
-          {/* Config summary */}
+          {/* Config pills */}
           <div className="hidden sm:flex items-center gap-2 flex-wrap justify-end">
             {[
               { label: "threshold", value: "4¢/s" },
@@ -43,8 +49,30 @@ export default function Page() {
           </div>
         </div>
 
-        {/* Dashboard */}
-        <Dashboard />
+        {/* Tabs */}
+        <div className="flex items-center gap-1 border-b border-zinc-800">
+          {(
+            [
+              { key: "live", label: "Live Markets" },
+              { key: "signals", label: "Signals" },
+            ] as { key: Tab; label: string }[]
+          ).map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => setTab(key)}
+              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
+                tab === key
+                  ? "border-zinc-300 text-zinc-100"
+                  : "border-transparent text-zinc-500 hover:text-zinc-300"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab content */}
+        {tab === "live" ? <LiveMarkets /> : <Dashboard />}
       </div>
     </main>
   );

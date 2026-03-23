@@ -3,6 +3,7 @@ import { MomentumDetector } from './momentum-detector.js';
 import { createPolymarketClobSocket } from './polymarket-clob.js';
 import { loadWatchlistFromPolymarket } from './market-loader.js';
 import { persistSignal } from './supabase-client.js';
+import { startBroadcastServer, broadcast } from './broadcast-server.js';
 import {
   logBotStartup,
   logMarketLoaded,
@@ -44,11 +45,28 @@ async function main(): Promise<void> {
     dryRun: config.dryRun,
   });
 
+  // Start WebSocket broadcast server for the live dashboard
+  startBroadcastServer(3001);
+  logInfo('Broadcast server listening on ws://localhost:3001');
+
   await initializeKalshiExecutor();
 
   // Signal handler — closed over config so it can read dryRun
   async function handleMomentumSignal(signal: MomentumSignal): Promise<void> {
     logSignal(signal);
+
+    // Broadcast signal to dashboard clients
+    broadcast({
+      type: 'signal',
+      tokenId: signal.polyTokenId,
+      conditionId: signal.polyConditionId,
+      title: signal.title,
+      yesBid: signal.yesBid,
+      yesAsk: signal.yesAsk,
+      velocity: signal.velocity,
+      confidence: signal.confidence,
+      timestamp: signal.timestamp,
+    });
 
     let result: OrderResult | undefined;
 
@@ -113,6 +131,16 @@ async function main(): Promise<void> {
         marketByConditionId.get(snapshot.conditionId);
       if (market) {
         detector.processBookUpdate(snapshot, market);
+        broadcast({
+          type: 'book',
+          tokenId: snapshot.tokenId,
+          conditionId: snapshot.conditionId,
+          title: market.title,
+          yesBid: snapshot.yesBid,
+          yesAsk: snapshot.yesAsk,
+          velocity: detector.getVelocity(snapshot.conditionId),
+          timestamp: snapshot.timestamp,
+        });
       }
     },
     onPriceChange: (snapshot) => {
@@ -121,6 +149,16 @@ async function main(): Promise<void> {
         marketByConditionId.get(snapshot.conditionId);
       if (market) {
         detector.processBookUpdate(snapshot, market);
+        broadcast({
+          type: 'book',
+          tokenId: snapshot.tokenId,
+          conditionId: snapshot.conditionId,
+          title: market.title,
+          yesBid: snapshot.yesBid,
+          yesAsk: snapshot.yesAsk,
+          velocity: detector.getVelocity(snapshot.conditionId),
+          timestamp: snapshot.timestamp,
+        });
       }
     },
     onError: (error) => {
