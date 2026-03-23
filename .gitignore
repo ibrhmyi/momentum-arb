@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js
+dashboard/.next/
+dashboard/out/
+
+# Environment — NEVER commit real credentials
+.env
+.env.local
+.env.*.local
+
+# Build output
+bot/dist/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
